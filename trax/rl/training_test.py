@@ -29,8 +29,10 @@ class TrainingTest(absltest.TestCase):
 
   def test_policytrainer_cartpole(self):
     """Trains a policy on cartpole."""
-    task = rl_task.RLTask('CartPole-v0', initial_trajectories=100,
-                          max_steps=200)
+    task = rl_task.RLTask('CartPole-v0', initial_trajectories=1,
+                          max_steps=2)
+    # TODO(pkozakowski): Use Distribution.param_shape to initialize the action
+    # head.
     model = lambda mode: tl.Serial(  # pylint: disable=g-long-lambda
         tl.Dense(32), tl.Relu(), tl.Dense(2), tl.LogSoftmax())
     lr = lambda h: lr_schedules.MultifactorSchedule(  # pylint: disable=g-long-lambda
