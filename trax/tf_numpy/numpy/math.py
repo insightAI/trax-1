@@ -190,10 +190,37 @@ def minimum(x1, x2):
   return _bin_op(min_or_and, x1, x2)
 
 
-# TODO(wangpeng): support broadcasting and 1-D case
 @utils.np_doc(np.matmul)
 def matmul(x1, x2):
-  return _bin_op(tf.matmul, x1, x2)
+  def f(x1, x2):
+    rank1 = x1.shape.rank
+    rank2 = x2.shape.rank
+    if rank1 == 0:
+      raise ValueError("First operand of matmul is scalar which is not allowed")
+    if rank2 == 0:
+      raise ValueError("Second operand of matmul is scalar which is not allowed"
+                       )
+    prepended = False
+    if rank1 == 1:
+      prepended = True
+      x1 = tf.reshape(x1, [1, x1.shape[0]])
+    appended = False
+    if rank2 == 1:
+      appended = True
+      x2 = tf.reshape(x2, [x2.shape[0], 1])
+    y = tf.matmul(x1, x2)
+    s = y.shape
+    new_shape = None
+    if prepended and appended:
+      new_shape = s[:-2]
+    elif prepended:
+      new_shape = s[:-2] + [s[-1]]
+    elif appended:
+      new_shape = s[:-1]
+    if new_shape is not None:
+      y = tf.reshape(y, new_shape)
+    return y
+  return _bin_op(f, x1, x2)
 
 
 @utils.np_doc(np.power)
